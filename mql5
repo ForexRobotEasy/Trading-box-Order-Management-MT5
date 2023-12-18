@@ -1,0 +1,148 @@
+
+// Developer: Forex Robot Easy Team
+// Website: forexroboteasy.com
+
+// Include necessary libraries
+#include <Trade/Trade.mqh>
+#include <Trade/PositionInfo.mqh>
+#include <Trade/TradeHistory.mqh>
+#include <Math/PositionSize.mqh>
+
+// Define trading box order management class
+class TradingBoxOrderManagementMT5
+{
+private:
+    double riskPercentage; // Risk percentage for position sizing
+    double targetRiskRewardRatio; // Target risk-reward ratio for trades
+    double spread; // Spread for selected currency pair
+    
+    // Function to calculate position size based on risk percentage
+    double CalculatePositionSize(double accountBalance, double stopLoss, double riskPercentage)
+    {
+        double lotSize = PositionSize::CalculateLotSize(accountBalance, stopLoss, riskPercentage, Symbol());
+        return lotSize;
+    }
+    
+    // Function to calculate gain percentage for a trade
+    double CalculateGainPercentage(double entryPrice, double exitPrice)
+    {
+        double gainPercentage = (exitPrice - entryPrice) / entryPrice * 100;
+        return gainPercentage;
+    }
+    
+    // Function to calculate target risk-reward ratio
+    double CalculateTargetRiskRewardRatio(double entryPrice, double stopLoss, double targetPrice)
+    {
+        double riskRewardRatio = (targetPrice - entryPrice) / (entryPrice - stopLoss);
+        return riskRewardRatio;
+    }
+    
+public:
+    TradingBoxOrderManagementMT5(double riskPercentage, double targetRiskRewardRatio)
+    {
+        this.riskPercentage = riskPercentage;
+        this.targetRiskRewardRatio = targetRiskRewardRatio;
+    }
+    
+    // Function to execute order with one click based on predefined conditions
+    void ExecuteOrderOneClick(string symbol, double entryPrice, double stopLoss, double targetPrice)
+    {
+        double accountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+        
+        // Calculate position size based on risk percentage
+        double positionSize = CalculatePositionSize(accountBalance, stopLoss, riskPercentage);
+        
+        // Calculate target risk-reward ratio
+        double riskRewardRatio = CalculateTargetRiskRewardRatio(entryPrice, stopLoss, targetPrice);
+        
+        // Calculate gain percentage
+        double gainPercentage = CalculateGainPercentage(entryPrice, targetPrice);
+        
+        // Place order with calculated position size, stop loss, and take profit levels
+        Trade.OrderSend(symbol, OP_BUY, positionSize, entryPrice, 10, stopLoss, targetPrice);
+        
+        // Print trade details
+        Print('Trade executed with the following details:');
+        Print('Symbol: ', symbol);
+        Print('Entry Price: ', entryPrice);
+        Print('Stop Loss: ', stopLoss);
+        Print('Target Price: ', targetPrice);
+        Print('Position Size: ', positionSize);
+        Print('Risk Percentage: ', riskPercentage);
+        Print('Risk-Reward Ratio: ', riskRewardRatio);
+        Print('Gain Percentage: ', gainPercentage);
+    }
+    
+    // Function to open positions after price action at specific price levels
+    void OpenPositionAfterPriceAction(string symbol, double priceLevel)
+    {
+        // Check if current price is above the specified price level
+        if (SymbolInfoDouble(symbol, SYMBOL_BID) > priceLevel)
+        {
+            // Place buy order at the specified price level
+            Trade.OrderSend(symbol, OP_BUY, 0.01, priceLevel, 10, 0, 0);
+            
+            // Print trade details
+            Print('Buy order executed at price level: ', priceLevel);
+        }
+        // Check if current price is below the specified price level
+        else if (SymbolInfoDouble(symbol, SYMBOL_ASK) < priceLevel)
+        {
+            // Place sell order at the specified price level
+            Trade.OrderSend(symbol, OP_SELL, 0.01, priceLevel, 10, 0, 0);
+            
+            // Print trade details
+            Print('Sell order executed at price level: ', priceLevel);
+        }
+    }
+    
+    // Function to build and customize trading strategies
+    void BuildTradingStrategy()
+    {
+        // Add your custom trading strategy code here
+    }
+    
+    // Function to automate trades and manage risk efficiently
+    void SetAndForgetTrading()
+    {
+        // Add your set-and-forget trading code here
+    }
+    
+    // Function to send mobile notifications about trades
+    void SendMobileNotifications(string message)
+    {
+        // Add your mobile notification code here
+    }
+    
+    // Function to calculate spread on selected currency pairs
+    double CalculateSpread(string symbol)
+    {
+        double spread = SymbolInfoDouble(symbol, SYMBOL_SPREAD);
+        return spread;
+    }
+};
+
+// Usage example
+void OnStart()
+{
+    TradingBoxOrderManagementMT5 orderManager(2.0, 2.0); // Create order manager object with risk percentage and target risk-reward ratio
+    
+    // Execute order with one click based on predefined conditions
+    orderManager.ExecuteOrderOneClick('EURUSD', 1.2000, 1.1900, 1.2200);
+    
+    // Open positions after price action at specific price levels
+    orderManager.OpenPositionAfterPriceAction('GBPUSD', 1.3500);
+    
+    // Build and customize trading strategies
+    orderManager.BuildTradingStrategy();
+    
+    // Automate trades and manage risk efficiently
+    orderManager.SetAndForgetTrading();
+    
+    // Send mobile notifications about trades
+    orderManager.SendMobileNotifications('Trade executed successfully');
+    
+    // Calculate spread on selected currency pairs
+    double spread = orderManager.CalculateSpread('EURUSD');
+    Print('Spread on EURUSD: ', spread);
+}
